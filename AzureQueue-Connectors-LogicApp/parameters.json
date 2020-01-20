@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppName": {
+      "value": "GEN-UNIQUE"
+    },
+    "azurequeues_Connection_Name": {
+      "value": "azurequeue"
+    },
+    "azurequeues_Connection_DisplayName": {
+      "value": "azurequeue"
+    },
+    "storageAccountName": {
+      "value": "GEN-UNIQUE"
+    },
+    "storageAccountType":{
+      "value": "Standard_LRS"
+    }
+  }
+}

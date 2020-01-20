@@ -1,0 +1,132 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "metadata": {
+        "description": "Name of the Logic App."
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_ZRS",
+        "Premium_LRS"
+      ],
+      "metadata": {
+        "description": "Storage Account type"
+      }
+    },
+    "azurequeues_Connection_Name": {
+      "type": "string",
+      "defaultValue": "azurequeues"
+    },
+    "azurequeues_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "azurequeue"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of your storage account"
+      },
+      "defaultValue": "storageaccountdoctob3b3"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2019-04-01",
+      "name": "[parameters('storageAccountName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('storageAccountType')]"
+      },
+      "kind": "StorageV2",
+      "properties": {}
+    },
+    {
+      "name": "[parameters('logicAppName')]",
+      "type": "Microsoft.Logic/workflows",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "LogicApp"
+      },
+      "apiVersion": "2016-06-01",
+      "properties": {
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {},
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "When_there_are_messages_in_a_queue": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azurequeues']['connectionId']"
+                  }
+                },
+                "method": "get",
+                "path": "//message_trigger"
+              },
+              "recurrence": {
+                "frequency": "Hour",
+                "interval": 1
+              },
+              "splitOn": "@triggerBody()?['QueueMessagesList']?['QueueMessage']"
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azurequeues": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',resourceGroup().location, '/managedApis/', 'azurequeues')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azurequeues_Connection_Name'))]",
+                "connectionName": "[parameters('azurequeues_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('azurequeues_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('azurequeues_Connection_Name')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',resourceGroup().location, '/managedApis/', 'azurequeues')]"
+        },
+        "displayName": "[parameters('azurequeues_Connection_DisplayName')]",
+        "parameterValues": {
+          "storageaccount": "[parameters('storageAccountName')]",
+          "sharedkey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    }
+  ],
+  "outputs": {}
+}

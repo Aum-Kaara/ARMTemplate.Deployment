@@ -1,0 +1,179 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namespaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of EventHub namespace"
+            }
+        },
+        "eventhubSku": {
+            "type": "string",
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "defaultValue": "Standard",
+            "metadata": {
+                "description": "The messaging tier for service Bus namespace"
+            }
+        },
+        "skuCapacity": {
+            "type": "int",
+            "allowedValues": [
+                1,
+                2,
+                4
+            ],
+            "defaultValue": 1,
+            "metadata": {
+                "description": "MessagingUnits for premium namespace"
+            }
+        },
+        "eventHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of Event Hub"
+            }
+        },
+        "consumerGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of Consumer Group"
+            }
+        },
+        "workflows_name": {
+            "defaultValue": "Demo-DevOps",
+            "type": "String"
+        },
+        "eventhub_Connection_Name": {
+            "type": "string",
+            "defaultValue": "eventhubs"
+        },
+        "eventhub_Connection_DisplayName": {
+            "type": "string",
+            "defaultValue": "eventhubs"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "apiVersion": "2017-04-01",
+            "name": "[parameters('namespaceName')]",
+            "type": "Microsoft.EventHub/namespaces",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('eventhubSku')]",
+                "tier": "[parameters('eventhubSku')]",
+                "capacity": "[parameters('skuCapacity')]"
+            },
+            "tags": {
+                "tag1": "value1",
+                "tag2": "value2"
+            },
+            "properties": {},
+            "resources": [
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[parameters('eventHubName')]",
+                    "type": "eventhubs",
+                    "dependsOn": [
+                        "[concat('Microsoft.EventHub/namespaces/', parameters('namespaceName'))]"
+                    ],
+                    "properties": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2017-04-01",
+                            "name": "[parameters('consumerGroupName')]",
+                            "type": "consumergroups",
+                            "dependsOn": [
+                                "[parameters('eventHubName')]"
+                            ],
+                            "properties": {
+                                "userMetadata": "User Metadata goes here"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "MICROSOFT.WEB/CONNECTIONS",
+            "apiVersion": "2018-07-01-preview",
+            "name": "[parameters('eventhub_Connection_Name')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "api": {
+                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'eventhubs')]"
+                },
+                "displayName": "[parameters('eventhub_Connection_DisplayName')]",
+                "parameterValues": {
+                    "connectionString": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/AuthorizationRules'),parameters('namespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', parameters('namespaceName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflows_name')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_events_are_available_in_Event_Hub": {
+                            "recurrence": {
+                                "frequency": "Minute",
+                                "interval": 3
+                            },
+                            "splitOn": "@triggerBody()",
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['eventhubs']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/@{encodeURIComponent('default')}/events/batch/head",
+                                "queries": {
+                                    "consumerGroupName": "$Default",
+                                    "contentType": "application/json",
+                                    "maximumEventsCount": 50
+                                }
+                            }
+                        }
+                    },
+                    "actions": {},
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "eventhubs": {
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',resourceGroup().location, '/managedApis/', 'eventhubs')]",
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('eventhub_Connection_Name'))]",
+                                "connectionName": "[parameters('eventhub_Connection_Name')]"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', parameters('eventhub_Connection_Name'))]"
+            ]
+        }
+    ]
+}

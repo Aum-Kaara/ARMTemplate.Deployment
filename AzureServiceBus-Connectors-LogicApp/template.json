@@ -1,0 +1,150 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "serviceBusNamespaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Service Bus namespace"
+      }
+    },
+    "serviceBusTopicName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Topic"
+      }
+    },
+    "serviceBusSubscriptionName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Subscription"
+      }
+    },
+    "workflows_name": {
+      "defaultValue": "Demo-DevOps",
+      "type": "String"
+    },
+    "servicebus_Connection_Name": {
+      "type": "string",
+      "defaultValue": "servicebus"
+    },
+    "servicebus_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "sb-connection"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-04-01",
+      "name": "[parameters('serviceBusNamespaceName')]",
+      "type": "Microsoft.ServiceBus/namespaces",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard"
+      },
+      "resources": [
+        {
+          "apiVersion": "2017-04-01",
+          "name": "[parameters('serviceBusTopicName')]",
+          "type": "topics",
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+          ],
+          "properties": {
+            "path": "[parameters('serviceBusTopicName')]"
+          },
+          "resources": [
+            {
+              "apiVersion": "2017-04-01",
+              "name": "[parameters('serviceBusSubscriptionName')]",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "[parameters('serviceBusTopicName')]"
+              ],
+              "properties": {
+                "forwardTo": "[parameters('serviceBusTopicName')]",
+                "forwardDeadLetteredMessagesTo": "[parameters('serviceBusTopicName')]"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('servicebus_Connection_Name')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'servicebus')]"
+        },
+        "displayName": "[parameters('servicebus_Connection_DisplayName')]",
+        "parameterValues": {
+          "connectionString": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),parameters('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusNamespaceName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[parameters('workflows_name')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "When_a_message_is_received_in_a_topic_subscription_(peek-lock)": {
+              "recurrence": {
+                "frequency": "Minute",
+                "interval": 3
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['servicebus']['connectionId']"
+                  }
+                },
+                "method": "get",
+                "path": "/@{encodeURIComponent(encodeURIComponent('topic'))}/subscriptions/@{encodeURIComponent('logicapp')}/messages/head/peek",
+                "queries": {
+                  "sessionId": "None",
+                  "subscriptionType": "Main"
+                }
+              }
+            }
+          },
+          "actions": {},
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "servicebus": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',resourceGroup().location, '/managedApis/', 'servicebus')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]",
+                "connectionName": "[parameters('servicebus_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('servicebus_Connection_Name'))]"
+      ]
+    }
+  ]
+}
