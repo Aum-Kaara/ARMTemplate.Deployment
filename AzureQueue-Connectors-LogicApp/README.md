@@ -35,3 +35,8 @@ steps:
 # How to create Release Pipeline 
 
 ![Image1](images/Image1.png)
+
+
+
+# Deployed to Azure Portal 
+![Image2](images/Image2.png)
