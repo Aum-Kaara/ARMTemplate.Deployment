@@ -1,0 +1,271 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workflows_name": {
+			"defaultValue": "Demo-DevOps",
+			"type": "String"
+		},
+		"accountName": {
+			"type": "string",
+			"defaultValue": "[concat('sql-', uniqueString(resourceGroup().id))]",
+			"metadata": {
+				"description": "Cosmos DB account name, max length 44 characters"
+			}
+		},
+		"primaryRegion": {
+			"type": "string",
+			"metadata": {
+				"description": "The primary replica region for the Cosmos DB account."
+			}
+		},
+		"secondaryRegion": {
+			"type": "string",
+			"metadata": {
+				"description": "The secondary replica region for the Cosmos DB account."
+			}
+		},
+		"defaultConsistencyLevel": {
+			"type": "string",
+			"defaultValue": "Session",
+			"allowedValues": [
+				"Eventual",
+				"ConsistentPrefix",
+				"Session",
+				"BoundedStaleness",
+				"Strong"
+			],
+			"metadata": {
+				"description": "The default consistency level of the Cosmos DB account."
+			}
+		},
+		"multipleWriteLocations": {
+			"type": "bool",
+			"defaultValue": false,
+			"allowedValues": [
+				true,
+				false
+			],
+			"metadata": {
+				"description": "Enable multi-master to make all regions writable."
+			}
+		},
+		"automaticFailover": {
+			"type": "bool",
+			"defaultValue": false,
+			"allowedValues": [
+				true,
+				false
+			],
+			"metadata": {
+				"description": "Enable automatic failover for regions. Ignored when Multi-Master is enabled"
+			}
+		},
+		"databaseName": {
+			"type": "string",
+			"defaultValue": "Database1",
+			"metadata": {
+				"description": "The name for the Azure Cosmos database"
+			}
+		},
+		"containerName": {
+			"type": "string",
+			"defaultValue": "Container1",
+			"metadata": {
+				"description": "The name for the container with dedicated throughput"
+			}
+		},
+		"throughput": {
+			"type": "int",
+			"defaultValue": 400,
+			"minValue": 400,
+			"maxValue": 1000000,
+			"metadata": {
+				"description": "The throughput for the container with dedicated throughput"
+			}
+		},
+		"connections_documentdb_name": {
+			"type": "string",
+			"defaultValue": "documentdb"
+		},
+		"connections_documentdb_DisplayName": {
+			"type": "string",
+			"defaultValue": "documentdb"
+		}
+	},
+	"variables": {
+		"accountName": "[toLower(parameters('accountName'))]",
+		"consistencyPolicy": {
+			"Session": {
+				"defaultConsistencyLevel": "Session"
+			}
+		},
+		"locations": [
+			{
+				"locationName": "[parameters('primaryRegion')]",
+				"failoverPriority": 0,
+				"isZoneRedundant": false
+			},
+			{
+				"locationName": "[parameters('secondaryRegion')]",
+				"failoverPriority": 1,
+				"isZoneRedundant": false
+			}
+		]
+	},
+	"resources": [
+		{
+			"type": "Microsoft.DocumentDB/databaseAccounts",
+			"name": "[variables('accountName')]",
+			"apiVersion": "2019-08-01",
+			"kind": "GlobalDocumentDB",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"consistencyPolicy": "[variables('consistencyPolicy')[parameters('defaultConsistencyLevel')]]",
+				"locations": "[variables('locations')]",
+				"databaseAccountOfferType": "Standard",
+				"enableAutomaticFailover": "[parameters('automaticFailover')]",
+				"enableMultipleWriteLocations": "[parameters('multipleWriteLocations')]"
+			}
+		},
+		{
+			"type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+			"name": "[concat(variables('accountName'), '/', parameters('databaseName'))]",
+			"apiVersion": "2019-08-01",
+			"dependsOn": [
+				"[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName'))]"
+			],
+			"properties": {
+				"resource": {
+					"id": "[parameters('databaseName')]"
+				}
+			}
+		},
+		{
+			"type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+			"name": "[concat(variables('accountName'), '/', parameters('databaseName'), '/', parameters('containerName'))]",
+			"apiVersion": "2019-08-01",
+			"dependsOn": [
+				"[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('accountName'), parameters('databaseName'))]"
+			],
+			"properties": {
+				"resource": {
+					"id": "[parameters('containerName')]",
+					"partitionKey": {
+						"paths": [
+							"/myPartitionKey"
+						],
+						"kind": "Hash"
+					},
+					"indexingPolicy": {
+						"indexingMode": "consistent",
+						"includedPaths": [
+							{
+								"path": "/*"
+							}
+						],
+						"excludedPaths": [
+							{
+								"path": "/myPathToNotIndex/*"
+							}
+						]
+					},
+					"defaultTtl": 86400,
+					"uniqueKeyPolicy": {
+						"uniqueKeys": [
+							{
+								"paths": [
+									"/phoneNumber"
+								]
+							}
+						]
+					}
+				},
+				"options": {
+					"throughput": "[parameters('throughput')]"
+				}
+			}
+		},
+		{
+			"type": "Microsoft.Web/connections",
+			"apiVersion": "2016-06-01",
+			"name": "[parameters('connections_documentdb_name')]",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"displayName": "[parameters('connections_documentdb_DisplayName')]",
+				"customParameterValues": {},
+				"api": {
+					"id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',resourceGroup().location, '/managedApis/',parameters('connections_documentdb_name'))]"
+				},
+				"parameterValues": {
+					"databaseAccount": "[parameters('accountName')]",
+					"accessKey": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('accountName')), '2015-04-08').primaryMasterKey]"
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.DocumentDB/databaseAccounts',variables('accountName'))]"
+			]
+		},
+		{
+			"name": "[parameters('workflows_name')]",
+			"type": "Microsoft.Logic/workflows",
+			"location": "[resourceGroup().location]",
+			"tags": {
+				"displayName": "LogicApp"
+			},
+			"apiVersion": "2016-06-01",
+			"properties": {
+				"definition": {
+					"$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+					"actions": {
+						"Create_or_update_document": {
+							"type": "ApiConnection",
+							"inputs": {
+								"host": {
+									"connection": {
+										"name": "@parameters('$connections')['documentdb']['connectionId']"
+									}
+								},
+								"method": "post",
+								"body": "@triggerBody()",
+								"path": "/dbs/@{encodeURIComponent('Database1')}/colls/@{encodeURIComponent('Container1')}/docs"
+							},
+							"runAfter": {}
+						}
+					},
+					"parameters": {
+						"$connections": {
+							"defaultValue": {},
+							"type": "Object"
+						}
+					},
+					"triggers": {
+						"manual": {
+							"type": "Request",
+							"kind": "Http",
+							"inputs": {
+								"schema": {}
+							}
+						}
+					},
+					"contentVersion": "1.0.0.0",
+					"outputs": {}
+				},
+				"parameters": {
+					"$connections": {
+						"value": {
+							"documentdb": {
+								"id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', parameters('connections_documentdb_name'))]",
+								"connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_documentdb_name'))]",
+								"connectionName": "[parameters('connections_documentdb_name')]"
+							}
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Web/connections', parameters('connections_documentdb_name'))]"
+			]
+		}
+	]
+}

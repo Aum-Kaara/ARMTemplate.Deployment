@@ -1,5 +1,5 @@
-# AzureQueue-Connectors
-ARM Template Deployment for AzureQueue-Connectors
+# CosmosDB-Connectors-LogicApp
+ARM Template Deployment for CosmosDB-Connectors-LogicApp
 
 
 # How to create Build Pipeline
@@ -22,7 +22,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'AzureQueue-Connectors-LogicApp'
+    SourceFolder: 'CosmosDB-Connectors-LogicApp'
     Contents: '*.json'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
@@ -33,10 +33,9 @@ steps:
 ```
 
 # How to create Release Pipeline 
-
 ![Image1](images/Image1.png)
-
 
 
 # Deployed to Azure Portal 
 ![Image2](images/Image2.png)
+

@@ -9,3 +9,6 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 # Deploy Azure Event Hub , Logic App with Connector
 ![Image2](EventHubsNamespace-Connector-LogicApp/images/Image2.png)
+
+# Deploy Azure Cosmos DB , Logic App with Connector
+![Image2](CosmosDB-Connectors-LogicApp/images/Image2.png)
