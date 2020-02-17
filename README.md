@@ -12,3 +12,6 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 # Deploy Azure Cosmos DB , Logic App with Connector
 ![Image2](CosmosDB-Connectors-LogicApp/images/Image2.png)
+
+# Deploy Azure Integration Account, Logic App
+![Image2](IntegrationAccount-LogicApp/images/Image2.png)
