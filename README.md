@@ -15,3 +15,6 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 # Deploy Azure Integration Account, Logic App
 ![Image2](IntegrationAccount-LogicApp/images/Image2.png)
+
+# Deploy Azure Logic App with Outlook connector
+![Image2](Outlook-Connectors-LogicApp/images/Image2.png)
