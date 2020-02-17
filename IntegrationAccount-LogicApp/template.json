@@ -1,0 +1,62 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "integration_account_name": {
+      "defaultValue": "integration-account",
+      "type": "String"
+    },
+    "workflows_name": {
+      "defaultValue": "workflows_name",
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Logic/integrationAccounts",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('integration_account_name')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Free"
+      },
+      "properties": {
+        "state": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[parameters('workflows_name')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Logic/integrationAccounts', parameters('integration_account_name'))]"
+      ],
+      "properties": {
+        "state": "Enabled",
+        "integrationAccount": {
+          "id": "[resourceId('Microsoft.Logic/integrationAccounts', parameters('integration_account_name'))]"
+        },
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {},
+          "contentVersion": "1.0.0.0",
+          "outputs": {},
+          "parameters": {},
+          "triggers": {
+            "manual": {
+              "inputs": {
+                "schema": {}
+              },
+              "kind": "Http",
+              "type": "Request"
+            }
+          }
+        },
+        "parameters": {}
+      }
+    }
+  ],
+  "outputs": {}
+}
