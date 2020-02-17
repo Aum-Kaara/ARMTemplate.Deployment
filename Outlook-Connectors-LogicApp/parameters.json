@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "connections_name": {
+      "value": "outlook"
+    },
+    "connections_displayname": {
+      "value": "outlook"
+    },
+    "workflows_name": {
+      "value": "workflows_name"
+    }
+  }
+}

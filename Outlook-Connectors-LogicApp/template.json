@@ -1,0 +1,103 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "connections_name": {
+      "defaultValue": "outlook",
+      "type": "String"
+    },
+    "connections_displayname": {
+      "defaultValue": "outlook",
+      "type": "String"
+    },
+    "workflows_name": {
+      "defaultValue": "workflows_name",
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('connections_name')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "displayName": "[parameters('connections_displayname')]",
+        "customParameterValues": {},
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',resourceGroup().location, '/managedApis/',parameters('connections_name'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[parameters('workflows_name')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('connections_name'))]"
+      ],
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "Send_an_email_(V2)": {
+              "inputs": {
+                "body": {
+                  "Attachments": [
+                    {
+                      "ContentBytes": "@{base64(triggerBody())}",
+                      "Name": "RequestBody"
+                    }
+                  ],
+                  "Body": "<p><br></p>",
+                  "Subject": "Test Subject",
+                  "To": "test@mycomp.com"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['outlook']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/v2/Mail"
+              },
+              "runAfter": {},
+              "type": "ApiConnection"
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {},
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "manual": {
+              "inputs": {
+                "schema": {}
+              },
+              "kind": "Http",
+              "type": "Request"
+            }
+          }
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "outlook": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',resourceGroup().location, '/managedApis/', 'outlook')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_name'))]",
+                "connectionName": "[parameters('connections_name')]"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
