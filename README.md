@@ -1,7 +1,7 @@
 # Azure Resource Manager QuickStart Templates for Logic Apps
 This repo contains all required Azure Resource Manager templates which is nesessary while development with Azure Logic App
 
-**ARM Template for Twitter Connector with Logic App
+[ARM Template for Twitter Connector with Logic App][Outlook-Connectors-LogicApp/]
 
 # Deploy Azure Queue , Logic App with Connector
 ![Image2](AzureQueue-Connectors-LogicApp/images/Image2.png)
