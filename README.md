@@ -1,13 +1,19 @@
 # Azure Resource Manager QuickStart Templates for Logic Apps
 This repo contains all required Azure Resource Manager templates which is nesessary while development with Azure Logic App
 
-[AzureQueue-Connectors-LogicApp](AzureQueue-Connectors-LogicApp)
-[AzureServiceBus-Connectors-LogicApp](AzureServiceBus-Connectors-LogicApp)
-[EventHubsNamespace-Connector-LogicApp](EventHubsNamespace-Connector-LogicApp)
-[CosmosDB-Connectors-LogicApp](CosmosDB-Connectors-LogicApp)
-[IntegrationAccount-LogicApp](IntegrationAccount-LogicApp)
-[Outlook-Connectors-LogicApp](Outlook-Connectors-LogicApp)
-[Twitter-Connector-LogicApp](Twitter-Connector-LogicApp)
+* [AzureQueue-Connectors-LogicApp](AzureQueue-Connectors-LogicApp)
+
+* [AzureServiceBus-Connectors-LogicApp](AzureServiceBus-Connectors-LogicApp)
+
+* [EventHubsNamespace-Connector-LogicApp](EventHubsNamespace-Connector-LogicApp)
+
+* [CosmosDB-Connectors-LogicApp](CosmosDB-Connectors-LogicApp)
+
+* [IntegrationAccount-LogicApp](IntegrationAccount-LogicApp)
+
+* [Outlook-Connectors-LogicApp](Outlook-Connectors-LogicApp)
+
+* [Twitter-Connector-LogicApp](Twitter-Connector-LogicApp)
 
 
 # Deploy Azure Queue , Logic App with Connector
