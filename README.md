@@ -15,6 +15,8 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 * [Twitter-Connector-LogicApp](Twitter-Connector-LogicApp)
 
+* [AzureKeyVault-Connector-LogicApp](AzureKeyVault-Connector-LogicApp)
+
 
 # Deploy Azure Queue , Logic App with Connector
 ![Image2](AzureQueue-Connectors-LogicApp/images/Image2.png)
@@ -36,3 +38,6 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 # Deploy Azure Logic App with Twitter connector
 ![Image2](Twitter-Connector-LogicApp/images/Image2.png)
+
+# Deploy Azure Key Vault , Logic App with Connector
+![Image2](AzureKeyVault-Connector-LogicApp/images/Image2.png)
