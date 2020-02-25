@@ -17,6 +17,8 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 * [AzureKeyVault-Connector-LogicApp](AzureKeyVault-Connector-LogicApp)
 
+* [FTP-Connector-LogicApp](FTP-Connector-LogicApp)
+
 
 # Deploy Azure Queue , Logic App with Connector
 ![Image2](AzureQueue-Connectors-LogicApp/images/Image2.png)
@@ -41,3 +43,6 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 # Deploy Azure Key Vault , Logic App with Connector
 ![Image2](AzureKeyVault-Connector-LogicApp/images/Image2.png)
+
+# Deploy Logic App with FTP Connector
+![Image2](FTP-Connector-LogicApp/images/Image2.png)
