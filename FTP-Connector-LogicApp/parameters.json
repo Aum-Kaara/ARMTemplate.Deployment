@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppName": {
+      "value": "dev"
+    },
+    "logicAppLocation": {
+      "value": "eastus"
+    },
+    "ftp_Connection_Name": {
+      "value": "ftp-2"
+    },
+    "ftp_Connection_DisplayName": {
+      "value": "ftp"
+    },
+    "ftp_serverAddress": {
+      "value": "test.rebex.net"
+    },
+    "ftp_userName": {
+      "value": "demo"
+    },
+    "ftp_password": {},
+    "ftp_serverPort": {},
+    "ftp_isSSL": {
+      "value": false
+    },
+    "ftp_isBinaryTransport": {
+      "value": false
+    },
+    "ftp_disableCertificateValidation": {
+      "value": false
+    },
+    "ftp_closeConnectionAfterRequestCompletion": {
+      "value": false
+    }
+  }
+}
