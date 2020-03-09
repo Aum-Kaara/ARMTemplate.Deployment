@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppName": {
+      "value": "dev"
+    },
+    "logicAppLocation": {
+      "value": "eastus"
+    },
+    "sftpwithssh_Connection_Name": {
+      "value": "sftpwithssh"
+    },
+    "sftpwithssh_Connection_DisplayName": {
+      "value": "sftp_with_ssh"
+    },
+    "sftpwithssh_hostName": {
+      "value": "hostname"
+    },
+    "sftpwithssh_userName": {
+      "value": "userName"
+    },
+    "sftpwithssh_password": {
+      "value": ""
+    },
+    "sftpwithssh_sshPrivateKey": {
+      "value": ""
+    },
+    "sftpwithssh_sshPrivateKeyPassphrase": {
+      "value": ""
+    },
+    "sftpwithssh_portNumber": {
+      "value": 22
+    },
+    "sftpwithssh_acceptAnySshHostKey": {
+      "value": true
+    },
+    "sftpwithssh_sshHostKeyFingerprint": {
+      "value": ""
+    },
+    "sftpwithssh_rootFolder": {
+      "value": ""
+    }
+  }
+}

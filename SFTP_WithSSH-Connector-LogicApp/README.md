@@ -1,5 +1,5 @@
-# FTP-Connector-LogicApp
-ARM Template Deployment forFTP-Connector-LogicApp
+# Twitter-Connector-LogicApp
+ARM Template Deployment for Twitter-Connector-LogicApp
 
 
 # How to create Build Pipeline
@@ -22,7 +22,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'FTP-Connector-LogicApp'
+    SourceFolder: 'Twitter-Connector-LogicApp'
     Contents: '*.json'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1

@@ -19,6 +19,7 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 * [FTP-Connector-LogicApp](FTP-Connector-LogicApp)
 
+* [SFTP_WithSSH-Connector-LogicApp](SFTP_WithSSH-Connector-LogicApp)
 
 # Deploy Azure Queue , Logic App with Connector
 ![Image2](AzureQueue-Connectors-LogicApp/images/Image2.png)
@@ -46,3 +47,7 @@ This repo contains all required Azure Resource Manager templates which is nesess
 
 # Deploy Logic App with FTP Connector
 ![Image2](FTP-Connector-LogicApp/images/Image2.png)
+
+# Deploy Logic App with SFTP_With_SSH Connector
+![Image2](SFTP_WithSSH-Connector-LogicApp/images/Image2.png)
+
